@@ -71,20 +71,6 @@ function getUserActiveBooking(userEmail) {
   }
   return null;
 }
-function showToast(message) {
-  let toast = document.getElementById('toast-notification');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'toast-notification';
-    toast.className = 'toast-notification';
-    document.body.appendChild(toast);
-  }
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => {
-    toast.classList.remove('show');
-  }, 2500);
-}
 function showDoctors() {
   doctorList.innerHTML = '';
   doctors.forEach(doc => {
@@ -131,7 +117,7 @@ function showSlots(doc) {
         cancelBtn.disabled = false;
         cancelBtn.onclick = () => {
           cancelBookedSlot(doc.id, slot);
-          showToast('Booking cancelled for ' + slot + ' with ' + doc.name);
+          alert('Booking cancelled for ' + slot + ' with ' + doc.name);
           showSlots(doc);
         };
         slotDiv.appendChild(cancelBtn);
@@ -142,11 +128,11 @@ function showSlots(doc) {
       btn.className = 'slot-btn';
       btn.onclick = () => {
         if (userBooking) {
-          showToast('You can only book one time slot at a time. Please cancel your existing booking first.');
+          alert('You can only book one time slot at a time. Please cancel your existing booking first.');
           return;
         }
         setBookedSlot(doc.id, slot, user.email);
-        showToast('Appointment booked for ' + slot + ' with ' + doc.name);
+        alert('Appointment booked for ' + slot + ' with ' + doc.name);
         showSlots(doc);
       };
       slotDiv.appendChild(btn);
