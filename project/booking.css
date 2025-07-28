@@ -138,4 +138,26 @@
   box-shadow: 0 2px 8px rgba(0,119,182,0.10);
   border: 2px solid #90e0ef;
   background: #fff;
+}
+.toast-notification {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0077b6;
+  color: #fff;
+  padding: 1rem 2.2rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 16px rgba(0,119,182,0.13);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, top 0.4s;
+}
+.toast-notification.show {
+  opacity: 1;
+  pointer-events: auto;
+  top: 60px;
 } 

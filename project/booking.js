@@ -1,4 +1,3 @@
-// Demo doctors and slots
 const defaultProfile = '../photos/profile.jpeg';
 const doctors = [
   { id: 1, name: 'Dr. Spandan Gurung', specialty: 'Orthodontist', experience: '8 years', email: 'spandan.gurung@hamrodental.com', image: defaultProfile },
@@ -17,14 +16,12 @@ const doctorName = document.getElementById('doctor-name');
 const slotsList = document.getElementById('slots-list');
 const backBtn = document.getElementById('back-btn');
 
-// --- AUTH CHECK ---
 const user = JSON.parse(localStorage.getItem('hamroUser'));
 if (!user) {
   alert('You must be logged in to book an appointment.');
   window.location.href = 'login.html';
 }
 
-// Show user info on page (optional)
 window.addEventListener('DOMContentLoaded', () => {
   let userDiv = document.createElement('div');
   userDiv.style.textAlign = 'right';
@@ -37,41 +34,57 @@ function getBookedSlots(doctorId) {
   const booked = JSON.parse(localStorage.getItem('bookedSlots') || '{}');
   return booked[doctorId] || [];
 }
-
-// Track who booked each slot (by user email)
 function getBookedSlotOwners(doctorId) {
   const owners = JSON.parse(localStorage.getItem('bookedSlotOwners') || '{}');
   return owners[doctorId] || {};
 }
-
 function setBookedSlot(doctorId, slot, userEmail) {
-  // Add to booked slots
   const booked = JSON.parse(localStorage.getItem('bookedSlots') || '{}');
   if (!booked[doctorId]) booked[doctorId] = [];
   booked[doctorId].push(slot);
   localStorage.setItem('bookedSlots', JSON.stringify(booked));
-  // Track owner
   const owners = JSON.parse(localStorage.getItem('bookedSlotOwners') || '{}');
   if (!owners[doctorId]) owners[doctorId] = {};
   owners[doctorId][slot] = userEmail;
   localStorage.setItem('bookedSlotOwners', JSON.stringify(owners));
 }
-
 function cancelBookedSlot(doctorId, slot) {
-  // Remove from booked slots
   const booked = JSON.parse(localStorage.getItem('bookedSlots') || '{}');
   if (booked[doctorId]) {
     booked[doctorId] = booked[doctorId].filter(s => s !== slot);
     localStorage.setItem('bookedSlots', JSON.stringify(booked));
   }
-  // Remove owner
   const owners = JSON.parse(localStorage.getItem('bookedSlotOwners') || '{}');
   if (owners[doctorId]) {
     delete owners[doctorId][slot];
     localStorage.setItem('bookedSlotOwners', JSON.stringify(owners));
   }
 }
-
+function getUserActiveBooking(userEmail) {
+  const owners = JSON.parse(localStorage.getItem('bookedSlotOwners') || '{}');
+  for (const docId in owners) {
+    for (const slot in owners[docId]) {
+      if (owners[docId][slot] === userEmail) {
+        return { docId, slot };
+      }
+    }
+  }
+  return null;
+}
+function showToast(message) {
+  let toast = document.getElementById('toast-notification');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-notification';
+    toast.className = 'toast-notification';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2500);
+}
 function showDoctors() {
   doctorList.innerHTML = '';
   doctors.forEach(doc => {
@@ -91,7 +104,6 @@ function showDoctors() {
   doctorList.style.display = 'block';
   slotsSection.style.display = 'none';
 }
-
 function showSlots(doc) {
   doctorList.style.display = 'none';
   slotsSection.style.display = 'block';
@@ -99,6 +111,7 @@ function showSlots(doc) {
   slotsList.innerHTML = '';
   const booked = getBookedSlots(doc.id);
   const owners = getBookedSlotOwners(doc.id);
+  const userBooking = getUserActiveBooking(user.email);
   slots.forEach(slot => {
     const slotDiv = document.createElement('div');
     slotDiv.style.display = 'inline-block';
@@ -118,7 +131,7 @@ function showSlots(doc) {
         cancelBtn.disabled = false;
         cancelBtn.onclick = () => {
           cancelBookedSlot(doc.id, slot);
-          alert('Booking cancelled for ' + slot + ' with ' + doc.name);
+          showToast('Booking cancelled for ' + slot + ' with ' + doc.name);
           showSlots(doc);
         };
         slotDiv.appendChild(cancelBtn);
@@ -128,17 +141,18 @@ function showSlots(doc) {
       btn.textContent = slot;
       btn.className = 'slot-btn';
       btn.onclick = () => {
+        if (userBooking) {
+          showToast('You can only book one time slot at a time. Please cancel your existing booking first.');
+          return;
+        }
         setBookedSlot(doc.id, slot, user.email);
-        alert('Appointment booked for ' + slot + ' with ' + doc.name);
-        showSlots(doc); // Refresh
+        showToast('Appointment booked for ' + slot + ' with ' + doc.name);
+        showSlots(doc);
       };
       slotDiv.appendChild(btn);
     }
     slotsList.appendChild(slotDiv);
   });
 }
-
 backBtn.onclick = showDoctors;
-
-// Initial load
 showDoctors(); 
